@@ -17,14 +17,22 @@ if [ "$1" == "setup" ]; then
     echo "[ERROR] - Please provide rclone token and remote name"
     exit 1
   fi
-  curl  -s -o $work_dir/rclone.conf \
+
+  # Tải file config tạm thời từ repo riêng tư về
+  curl  -s -o $work_dir/rclone_tmp.conf \
         -H "Authorization: token $2" \
         -H "Accept: application/vnd.github.v3.raw" \
         -L https://api.github.com/repos/$3/contents/$4
+
+  # SỬA LỖI TẠI ĐÂY: Tự động gom chuỗi JSON bị gãy dòng của token về lại thành 1 dòng duy nhất cho rclone đọc được
+  awk '/token =/ {printf "%s", $0; flag=1; next} flag && /}/ {print $0; flag=0; next} flag {printf "%s", $0; next} 1' $work_dir/rclone_tmp.conf > $work_dir/rclone.conf
+  
+  # Xóa file tạm sau khi xử lý xong
+  rm -f $work_dir/rclone_tmp.conf
   exit 0
 elif [ "$1" == "dummy" ]; then
   rclone -v --config="$RCLONE_CONFIG_1DRIVE" copy "$work_dir/dummy.txt" "$ONEDRIVE_REMOTE:NTBuild/${uploaddir}/${VERSION}/${DEVICE_MODEL}/" || {
-    echo "[ONEDRIVE] - Error uploading file to OneDrive: $FILENAME"
+    echo "[GDRIVE] - Error uploading file to Google Drive: $FILENAME"
     exit 1
   }
   exit 0
@@ -34,10 +42,10 @@ fi
 
 if [[ $(git branch --show-current) == "beta" ]]; then
     VERSION="$(cat $work_dir/Version)"
- 	status="Beta"
+	status="Beta"
 else
     VERSION="$(cat $work_dir/Version)"
- 	status="Official"
+	status="Official"
 fi
 
 if [[ $BRAND == "OnePlus" ]]; then
@@ -57,10 +65,10 @@ echo "[SCRIPT] - Output: "
 output_file="out/${NTBUILD}_${VERSION}_${DEVICE_MODEL}_OS${BASE_BUILD_ID}_${hash}_${status}.zip"
 echo "${NTBUILD}_${VERSION}_${DEVICE_MODEL}_OS${BASE_BUILD_ID}_${hash}_${status}.zip" > $work_dir/bin/ddevice/output_zip.txt
 echo "$output_file"
-echo "[ONEDRIVE] - Uploading"
-# 1drive
+echo "[GDRIVE] - Uploading"
+# gdrive
 rclone -v --config="$RCLONE_CONFIG_1DRIVE" copy "$output_file" "$ONEDRIVE_REMOTE:NTBuild/${uploaddir}/${VERSION}/${DEVICE_MODEL}/" || {
-echo "[ONEDRIVE] - Error uploading file to OneDrive: $output_file"
+echo "[GDRIVE] - Error uploading file to Google Drive: $output_file"
 exit 1
 }
 
