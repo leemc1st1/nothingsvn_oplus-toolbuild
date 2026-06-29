@@ -8,7 +8,7 @@ DEVICE_MODEL=$(cat $work_dir/bin/ddevice/device_model.txt)
 BASE_BUILD_ID=$(cat $work_dir/bin/ddevice/base_build_id.txt)
 BRAND=$(cat $work_dir/bin/ddevice/brand.txt)
 RCLONE_CONFIG_1DRIVE="$work_dir/rclone.conf"
-ONEDRIVE_REMOTE="starxONEDRIVE"
+ONEDRIVE_REMOTE="gdrive"
 
 
 
