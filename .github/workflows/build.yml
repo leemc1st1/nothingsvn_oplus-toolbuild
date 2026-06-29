@@ -78,10 +78,16 @@ jobs:
           sudo bash packROM.sh n
 
       - name: Setup Rclone...
+        env:
+          GDRIVE_CONFIG_ENV: ${{ secrets.GDRIVE_CONFIG }}
         run: |
-          sudo -E bash uploadROM.sh setup "${{ secrets.GH_TOKEN }}" "${{ secrets.GH_REPO }}" "${{ secrets.RCLONE_TOKEN_PATH }}"
+          sudo -E bash uploadROM.sh setup
           
       - name: Upload ROM...
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          GDRIVE_CONFIG_ENV: ${{ secrets.GDRIVE_CONFIG }}
         run: |
           python notify.py upload "${{ github.repository }}" "${{ inputs.input_url }}" "oplus" "${{ inputs.builder_name }}" "${{ inputs.builder_id }}"
           sudo -E bash uploadROM.sh
