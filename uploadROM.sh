@@ -13,22 +13,16 @@ ONEDRIVE_REMOTE="gdrive"
 
 
 if [ "$1" == "setup" ]; then
-  if [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]; then
-    echo "[ERROR] - Please provide rclone token and remote name"
+  # Kiểm tra xem biến môi trường có rỗng không
+  if [ -z "$GDRIVE_CONFIG_ENV" ]; then
+    echo "[ERROR] - GDRIVE_CONFIG_ENV variable is empty!"
     exit 1
   fi
 
-  # Tải file config tạm thời từ repo riêng tư về
-  curl  -s -o $work_dir/rclone_tmp.conf \
-        -H "Authorization: token $2" \
-        -H "Accept: application/vnd.github.v3.raw" \
-        -L https://api.github.com/repos/$3/contents/$4
-
-  # SỬA LỖI TẠI ĐÂY: Tự động gom chuỗi JSON bị gãy dòng của token về lại thành 1 dòng duy nhất cho rclone đọc được
-  awk '/token =/ {printf "%s", $0; flag=1; next} flag && /}/ {print $0; flag=0; next} flag {printf "%s", $0; next} 1' $work_dir/rclone_tmp.conf > $work_dir/rclone.conf
+  # Ghi trực tiếp nội dung cấu hình từ GitHub Secret vào file rclone.conf
+  echo "$GDRIVE_CONFIG_ENV" > "$RCLONE_CONFIG_1DRIVE"
   
-  # Xóa file tạm sau khi xử lý xong
-  rm -f $work_dir/rclone_tmp.conf
+  echo "[SYSTEM] - Setup Rclone config successfully."
   exit 0
 elif [ "$1" == "dummy" ]; then
   rclone -v --config="$RCLONE_CONFIG_1DRIVE" copy "$work_dir/dummy.txt" "$ONEDRIVE_REMOTE:NTBuild/${uploaddir}/${VERSION}/${DEVICE_MODEL}/" || {
